@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Map</title>
+    <style>
+        body {
+            background-color: #f2f2f2;
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #555;
+            margin-top: 30px;
+        }
+
+        select {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 200px;
+        }
+
+        .navbar {
+            background-color: #333;
+            padding: 10px;
+        }
+
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="/">可视化web应用</a>
+    </div>
+
+    <h1>Map</h1>
+    
+    <h2>Select a Link:</h2>
+    <select id="linkDropdown" onchange="navigateToLink()">
+        <option value="">请选择链接</option>
+        {% for route, text in link_routes.items %}
+            <option value="{% url route %}">{{ text }}</option>
+        {% endfor %}
+    </select>
+    
+    <script>
+        function navigateToLink() {
+            const linkDropdown = document.getElementById('linkDropdown');
+            const selectedValue = linkDropdown.value;
+            if (selectedValue) {
+                window.location.href = selectedValue;
+            }
+        }
+    </script>
+</body>
+</html>

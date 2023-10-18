@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Map Chart</title>
+</head>
+<body>
+    <form method="GET" action="/total">
+        <select name="year" onchange="this.form.submit()">
+            {% for year in years %}
+                <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>{{ year }}</option>
+            {% endfor %}
+        </select>
+        <select name="data_type" onchange="this.form.submit()">
+            {% for key, value in data_types.items %}
+                <option value="{{ key }}" {% if key == selected_data_type %}selected{% endif %}>{{ value }}</option>
+            {% endfor %}
+        </select>
+        <select name="sex" onchange="this.form.submit()">
+            {% for key, value in sex_types.items %}
+                <option value="{{ key }}" {% if key == selected_sex %}selected{% endif %}>{{ value }}</option>
+            {% endfor %}
+        </select>
+
+    </form>
+    
+    <div id="mapChart">{{ chart|safe }}</div>
+    <button onclick="window.location.href = '{% url 'index' %}';">返回首页</button>
+</body>
+</html>

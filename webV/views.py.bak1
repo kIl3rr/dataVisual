@@ -1,0 +1,127 @@
+from django.shortcuts import render
+from pyecharts import options as opts
+from pyecharts.charts import Geo,Map
+from .models import totalthreeyears
+import pandas as pd
+
+def index(request):
+    years = [2019, 2020, 2021]  # 可选的年份
+    data_types = {
+        'graduates': '毕业生',
+        'entrants': '新生'
+    }  # 数据类型选项
+    sex_types = {
+        'man': '男性',
+        'female': '女性',
+        '': '空'
+    }  # 性别类型选项
+
+    if 'year' in request.GET:
+        selected_year = int(request.GET['year'])  # 获取选中的年份
+    else:
+        selected_year = years[0]  # 默认选择第一个年份
+
+    if 'data_type' in request.GET:
+        selected_data_type = request.GET['data_type']  # 获取选中的数据类型
+    else:
+        selected_data_type = 'graduates'  # 默认选择毕业生
+
+    if 'sex' in request.GET:
+        selected_sex = request.GET['sex']  # 获取选中的性别类型
+    else:
+        selected_sex = ''  # 默认选择空值
+
+    data = totalthreeyears.objects.filter(year=selected_year)  # 根据选中的年份获取数据
+
+    if selected_sex:
+        sex_field = selected_data_type + selected_sex
+        values = [getattr(d, sex_field) for d in data]  # 根据性别字段获取相应的值
+    else:
+        values = [getattr(d, selected_data_type) for d in data]  # 根据数据类型获取相应的值
+
+    title = data_types[selected_data_type] + ' in ' + str(selected_year)
+    regions = [d.region for d in data]
+
+    if selected_data_type == 'graduates':
+        data_range = [0, max(values)]
+        data_pieces = [
+            {"min": 30000, "label": ">30000", "color": "#4f070d"},
+            {"min": 10000, "max": 30000, "label": "10000-30000", "color": "#9c141b"},
+            {"min": 8000, "max": 10000, "label": "8000-10000", "color": "#d9272c"},
+            {"min": 5000, "max": 8000, "label": "5000-8000", "color": "#ed3237"},
+            {"min": 2000, "max": 5000, "label": "2000-5000", "color": "#f2705f"},
+            {"max": 2000, "label": "<2000", "color": "#f5bba7"},
+        ]
+    else:
+        data_range = [0, max(values)]
+        data_pieces = [
+            {"min": 10000, "label": ">10000", "color": "#4f070d"},
+            {"min": 5000, "max": 10000, "label": "5000-10000", "color": "#9c141b"},
+            {"min": 1000, "max": 4999, "label": "1000-4999", "color": "#d9272c"},
+            {"min": 500, "max": 999, "label": "500-999", "color": "#ed3237"},
+            {"min": 100, "max": 499, "label": "100-499", "color": "#f2705f"},
+            {"max": 99, "label": "<100", "color": "#f5bba7"},
+        ]
+
+    for i in values:
+        i = int(i)
+
+    # 将 regions 和 values 转换为 DataFrame 对象
+    df = pd.DataFrame({'region': regions, 'value': values})
+
+    # 将合并后的数据转换为列表
+    fin = df.values.tolist()
+    print(title)
+
+    map_chart = (
+        Map()
+        .add(title, fin, "china")
+        .set_global_opts(
+            title_opts=opts.TitleOpts(title="全国授予学位数和毕业生数"),
+            visualmap_opts=opts.VisualMapOpts(max_=30000)
+        )
+        .set_series_opts(label_opts=opts.LabelOpts(is_show=True))
+    )
+
+    # # 创建地图
+    # geo_chart = (
+    #     Geo()
+    #     .add_schema(maptype="china")
+    #     .add(
+    #         series_name=data_types[selected_data_type],
+    #         data_pair=[list(z) for z in zip(regions, values)],
+    #         type_="scatter",
+    #         label_opts=opts.LabelOpts(position="inside"),
+    #         tooltip_opts=opts.TooltipOpts(
+    #             formatter="{b},{c}"
+    #         ),  # 使用 {b} 表示地区名称，{c} 表示数值
+    #     )
+    #     .set_series_opts(label_opts=opts.LabelOpts(is_show=False))
+    #     .set_global_opts(
+    #         title_opts=opts.TitleOpts(title=title),
+    #         visualmap_opts=opts.VisualMapOpts(
+    #             min_=data_range[0],
+    #             max_=data_range[1],
+    #             is_piecewise=False,
+    #             pieces=data_pieces,
+    #         ),
+    #     )
+    # )
+
+    # 渲染页面
+    map_chart = map_chart.render_embed()
+    map_chart.render("全国授予学位数和毕业生数.html")
+    # return render(
+    #     request,
+    #     'index.html',
+    #     {
+    #         'chart': map_chart,
+    #         'years': years,
+    #         'selected_year': selected_year,
+    #         'data_types': data_types,
+    #         'selected_data_type': selected_data_type,
+    #         'sex_types': sex_types,
+    #         'selected_sex': selected_sex,
+    #     },
+    # )
+    return render(request,'全国授予学位数和毕业生数.html')

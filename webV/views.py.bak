@@ -1,0 +1,100 @@
+from django.shortcuts import render
+from django.http import HttpResponse
+import pandas as pd
+from pyecharts import options as opts
+from pyecharts.charts import Geo
+from .models import totalthreeyears
+from pyecharts.charts import Map
+from . import models
+
+province_coords = {
+    "beijing": [116.405285, 39.904989],
+    "tianjin": [117.190182, 39.125596],
+    "hebei": [114.502461, 38.045474],
+    "shanxi": [112.549248, 37.857014],
+    "neimenggu": [111.670801, 40.818311],
+    "liaoning": [123.429096, 41.796767],
+    "jilin": [125.3245, 43.886841],
+    "heilongjiang": [126.642464, 45.756967],
+    "shanghai": [121.472644, 31.231706],
+    "jiangsu": [118.767413, 32.041544],
+    "zhejiang": [120.153576, 30.287459],
+    "anhui": [117.283042, 31.86119],
+    "fujian": [119.306239, 26.075302],
+    "jiangxi": [115.892151, 28.676493],
+    "shandong": [117.000923, 36.675807],
+    "henan": [113.665412, 34.757975],
+    "hubei": [114.298572, 30.584355],
+    "hunan": [112.982279, 28.19409],
+    "guangdong": [113.280637, 23.125178],
+    "guangxi": [108.320004, 22.82402],
+    "hainan": [110.33119, 20.031971],
+    "chongqing": [106.504962, 29.533155],
+    "sichuan": [104.065735, 30.659462],
+    "guizhou": [106.713478, 26.578343],
+    "yunnan": [101.712251, 24.140417],
+    "xizang": [91.132212, 29.660361],
+    "shanxi": [108.948024, 34.263161],
+    "gansu": [103.823557, 36.058039],
+    "qinghai": [96.202544, 35.499761],
+    "ningxia": [106.278179, 38.46637],
+    "xinjiang": [87.617733, 43.792818],
+    "taiwan": [121.509062, 25.044332],
+    "xianggang": [114.173355, 22.320048],
+    "aomen": [113.54909, 22.198951]
+}
+
+
+# Create your views here.
+# def index(request):
+#     data = models.totalthreeyears.objects.all()
+#     regions = [d.region for d in data]
+#     graduates = [d.graduates for d in data]
+#     entrants = [d.entrants for d in data]
+
+#     # 创建地图
+#     geo = Geo()
+#     geo.add_schema(maptype="china")
+
+#     # 添加数据
+#     for i in range(len(regions)):
+#         region = regions[i]
+#         graduate = graduates[i]
+#         entrant = entrants[i]
+#         coords = province_coords.get(region, None)
+#         if coords:
+#             geo.add_coordinate(region, coords[0], coords[1])
+#             geo.add("", [(region, graduate), (region, entrant)], type_="effectScatter")
+
+#     # 渲染页面
+#     chart = geo.render_embed()  # 修改此处为 render_embed() 方法
+#     return render(request, 'index.html', {'chart': chart})
+    
+def index(request):
+    data = totalthreeyears.objects.all()
+    regions = [d.region for d in data]
+    graduates = [d.graduates for d in data]
+    entrants = [d.entrants for d in data]
+
+    print(regions)
+    print(graduates)
+    print(entrants)
+    # 创建地图
+    map_chart = Map()
+    map_chart.set_global_opts(
+        visualmap_opts=opts.VisualMapOpts(max_=100),
+        legend_opts=opts.LegendOpts(is_show=False)  # 隐藏图例
+    )
+
+    # 添加数据
+    for i in range(len(regions)):
+        region = regions[i]
+        graduate = graduates[i]
+        entrant = entrants[i]
+        coords = province_coords.get(region, None)
+        if coords:
+            map_chart.add(region, [(region, graduate), (region, entrant)], label_opts=opts.LabelOpts(position="inside"))  # 设置标签显示样式
+
+    # 渲染页面
+    chart = map_chart.render_embed()
+    return render(request, 'index.html', {'chart': chart})

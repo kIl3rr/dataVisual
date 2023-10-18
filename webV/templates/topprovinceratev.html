@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Top Province Rate</title>
+</head>
+<body>
+    <form method="GET" action="/topprovince/">
+        <select name="year" onchange="this.form.submit()">
+            {% for year in years %}
+                <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>{{ year }}</option>
+            {% endfor %}
+        </select>
+    </form>
+    <div id="chartContainer">{{ chart|safe }}</div>
+    <button onclick="window.location.href = '{% url 'index' %}';">返回首页</button>
+</body>
+</html>
